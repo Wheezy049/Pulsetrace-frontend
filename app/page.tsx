@@ -31,11 +31,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden relative selection:bg-primary/30">
-
       {/* Background gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
       <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-
       {/* Header */}
       <header className="container mx-auto px-12 py-6 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
@@ -51,7 +49,6 @@ export default function LandingPage() {
           </Button>
         </div>
       </header>
-
       {/* Hero Section */}
       <main className="container mx-auto px-6 pt-24 pb-32 relative z-10 flex flex-col items-center">
         <motion.div
@@ -64,15 +61,12 @@ export default function LandingPage() {
             <Zap className="w-4 h-4" />
             <span>Real-time Observability is here</span>
           </motion.div>
-
           <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-bold tracking-tighter mb-3 text-white leading-[1.1]">
             Monitor APIs in <span className="text-gradient">Real-Time</span>
           </motion.h1>
-
           <motion.p variants={itemVariants} className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
             Detect spikes, track latency, and troubleshoot failures before they impact your users. The premium observability dashboard for modern engineering teams.
           </motion.p>
-
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild size="lg" className="h-12 px-8 text-base bg-primary hover:bg-primary/90">
               <Link href="/register">
@@ -85,7 +79,6 @@ export default function LandingPage() {
             </Button>
           </motion.div>
         </motion.div>
-
         {/* Floating Dashboard Image Mockup */}
         <motion.div
           initial={{ y: 100, opacity: 0 }}
@@ -98,7 +91,6 @@ export default function LandingPage() {
             <div className="rounded-lg overflow-hidden bg-[#0F0F14] border border-white/5 aspect-[16/9] flex items-center justify-center relative">
               {/* Mock Dashboard Pattern */}
               <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(to right, #808080 1px, transparent 1px), linear-gradient(to bottom, #808080 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-
               <div className="w-full h-full p-8 flex flex-col gap-6">
                 <div className="flex justify-between items-center">
                   <div className="w-48 h-8 bg-white/5 rounded-md" />
@@ -123,14 +115,12 @@ export default function LandingPage() {
             </div>
           </div>
         </motion.div>
-
         {/* Features Section */}
         <div className="mt-32 max-w-6xl w-full">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold text-white mb-2">Everything you need to monitor APIs</h2>
             <p className="text-muted-foreground">Built for speed, reliability, and precision.</p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
@@ -180,7 +170,6 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
-
           {/* CTA Section */}
           <div className="mt-32 max-w-6xl w-full mx-auto">
             <motion.div
@@ -206,7 +195,6 @@ export default function LandingPage() {
           </div>
         </div>
       </main>
-
       {/* Footer */}
       <Footer />
     </div>

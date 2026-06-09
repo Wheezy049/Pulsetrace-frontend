@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -19,8 +20,9 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const { loginAsync, isLoggingIn } = useAuth();
 
     const {
         register,
@@ -31,13 +33,16 @@ export default function LoginPage() {
     });
 
     const onSubmit = async (data: LoginFormValues) => {
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsLoading(false);
+        setErrorMsg(null);
+        try {
+            await loginAsync(data);
             router.push("/dashboard");
-        }, 1500);
+        } catch (err) {
+            setErrorMsg(err instanceof Error ? err.message : "Invalid email or password");
+        }
     };
+
+    const isLoading = isLoggingIn;
 
     return (
         <>
@@ -45,31 +50,40 @@ export default function LoginPage() {
                 <h1 className="text-2xl font-bold text-white mb-2">Welcome back</h1>
                 <p className="text-sm text-muted-foreground">Enter your credentials to access your dashboard</p>
             </div>
-
+            {errorMsg && (
+                <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{errorMsg}</span>
+                </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email" className="text-zinc-300">Email Address</Label>
                     <Input
                         id="email"
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="name@company.com"
                         {...register("email")}
-                        className="bg-background/50 border-white/10 focus-visible:ring-primary px-4 py-5"
+                        className="bg-zinc-950/50 border-zinc-800 focus-visible:ring-primary text-white px-4 py-5"
                     />
                     {errors.email && (
-                        <p className="text-sm text-destructive">{errors.email.message}</p>
+                        <p className="text-xs text-red-400">{errors.email.message}</p>
                     )}
                 </div>
-
                 <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="password" className="text-zinc-300">Password</Label>
+                        <Link href="#" className="text-xs text-primary hover:text-primary/90 transition-colors">
+                            Forgot password?
+                        </Link>
+                    </div>
                     <div className="relative">
                         <Input
                             id="password"
                             type={showPassword ? "text" : "password"}
-                            placeholder="Enter password"
+                            placeholder="••••••••"
                             {...register("password")}
-                            className="bg-background/50 border-white/10 focus-visible:ring-primary px-4 py-5"
+                            className="bg-zinc-950/50 border-zinc-800 focus-visible:ring-primary text-white px-4 py-5"
                         />
                         <button
                             type="button"
@@ -79,17 +93,11 @@ export default function LoginPage() {
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                     </div>
-                    <div className="flex items-center justify-end">
-                        <Link href="#" className="text-xs text-primary hover:underline">
-                            Forgot password?
-                        </Link>
-                    </div>
                     {errors.password && (
-                        <p className="text-sm text-destructive">{errors.password.message}</p>
+                        <p className="text-xs text-red-400">{errors.password.message}</p>
                     )}
                 </div>
-
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 mt-4 px-4 py-5" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white mt-6 px-4 py-5" disabled={isLoading}>
                     {isLoading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -100,9 +108,8 @@ export default function LoginPage() {
                     )}
                 </Button>
             </form>
-
-            <div className="mt-3 text-center text-sm text-muted-foreground">
-                Don't have an account?{" "}
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+                Don&#39;t have an account?{" "}
                 <Link href="/register" className="text-primary hover:underline font-medium">
                     Sign up
                 </Link>
