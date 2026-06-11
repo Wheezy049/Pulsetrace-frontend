@@ -25,12 +25,84 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
   const [timeFilter, setTimeFilter] = useState('7d');
   const [copiedKey, setCopiedKey] = useState(false);
 
+  // Integration Snippet State
+  const [snippetTab, setSnippetTab] = useState<'curl' | 'express' | 'fastapi'>('curl');
+  const [copiedSnippet, setCopiedSnippet] = useState(false);
+
   // Simulator Form State
   const [selectedEndpoint, setSelectedEndpoint] = useState("");
   const [simStatus, setSimStatus] = useState(200);
   const [simLatency, setSimLatency] = useState(120);
   const [simError, setSimError] = useState<string | null>(null);
   const [simSuccess, setSimSuccess] = useState(false);
+
+  const handleCopySnippet = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSnippet(true);
+    setTimeout(() => setCopiedSnippet(false), 2000);
+  };
+
+  const getSnippetCode = () => {
+    const activeEndpointId = selectedEndpoint || stats?.endpointStats?.[0]?.id || "YOUR_ENDPOINT_ID";
+    switch (snippetTab) {
+      case "curl":
+        return `curl -X POST http://localhost:5000/api/logs \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "endpointId": "${activeEndpointId}",
+    "statusCode": 200,
+    "responseTime": 120
+  }'`;
+      case "express":
+        return `// Express.js Middleware Example
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const endpointId = "${activeEndpointId}";
+    
+    fetch('http://localhost:5000/api/logs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${apiKey}'
+      },
+      body: JSON.stringify({
+        endpointId,
+        statusCode: res.statusCode,
+        responseTime: duration
+      })
+    }).catch(err => console.error('Logging failed', err));
+  });
+  next();
+});`;
+      case "fastapi":
+        return `# Python FastAPI Middleware Example
+import time, httpx
+from fastapi import Request
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    response = await call_next(request)
+    duration = int((time.time() - start) * 1000)
+    
+    async with httpx.AsyncClient() as client:
+        await client.post(
+            "http://localhost:5000/api/logs",
+            headers={"Authorization": "Bearer ${apiKey}"},
+            json={
+                "endpointId": "${activeEndpointId}",
+                "statusCode": response.status_code,
+                "responseTime": duration
+            }
+        )
+    return response`;
+      default:
+        return "";
+    }
+  };
 
   // Fetch project details using custom hooks
   const { project, isLoadingProject } = useProjectDetail(projectId);
@@ -353,6 +425,43 @@ export default function ProjectOverviewPage({ params }: { params: Promise<{ proj
                 title="Copy Key"
               >
                 {copiedKey ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </div>
+          {/* API Integration Snippets */}
+          <div className="bg-zinc-900/30 p-5 rounded-xl border border-zinc-800/60 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div>
+              <h3 className="text-sm font-semibold text-white">SDK & Integration</h3>
+              <p className="text-[11px] text-zinc-400 mt-1">Send live HTTP request latency and status codes from your backend.</p>
+            </div>
+            
+            <div className="flex bg-zinc-950 p-0.5 rounded-lg border border-zinc-850">
+              {(['curl', 'express', 'fastapi'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setSnippetTab(tab)}
+                  className={`flex-1 py-1.5 text-[10px] font-mono rounded transition-colors ${snippetTab === tab
+                    ? 'bg-zinc-800 text-white font-medium'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                >
+                  {tab === 'curl' ? 'cURL' : tab === 'express' ? 'Express' : 'FastAPI'}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative group">
+              <pre className="bg-zinc-950 p-3 rounded-lg border border-zinc-850 font-mono text-[10px] text-zinc-300 overflow-x-auto max-h-[210px] leading-relaxed whitespace-pre select-all scrollbar-thin">
+                <code>{getSnippetCode()}</code>
+              </pre>
+              <button
+                type="button"
+                onClick={() => handleCopySnippet(getSnippetCode())}
+                className="absolute top-2 right-2 p-1.5 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded border border-zinc-800/80 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                title="Copy Code"
+              >
+                {copiedSnippet ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
           </div>

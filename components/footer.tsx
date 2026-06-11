@@ -10,7 +10,7 @@ export default function Footer() {
                     <div className="col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-4">
                             <Activity className="w-6 h-6 text-primary" />
-                            <span className="text-xl font-bold tracking-tight text-white">PulseTrace</span>
+                            <span className="text-xl font-bold tracking-tight text-white">RequestLens</span>
                         </Link>
                         <p className="text-sm text-muted-foreground mb-4 max-w-xs">
                             The premium observability dashboard for modern engineering teams. Monitor, trace, and resolve API issues faster.
@@ -49,7 +49,7 @@ export default function Footer() {
                 </div>
 
                 <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                    <p>© {new Date().getFullYear()} PulseTrace Inc. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} RequestLens Inc. All rights reserved.</p>
                     <div className="flex items-center gap-4">
                         <Link href="#" className="hover:text-white transition-colors">Twitter</Link>
                         <Link href="#" className="hover:text-white transition-colors">GitHub</Link>

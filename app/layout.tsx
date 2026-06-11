@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PulseTrace | API Monitoring",
+  title: "RequestLens | API Monitoring",
   description: "Real-time API monitoring and analytics dashboard"
 };
 

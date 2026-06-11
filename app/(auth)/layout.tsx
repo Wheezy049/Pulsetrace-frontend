@@ -15,7 +15,7 @@ export default function AuthLayout({
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform border border-primary/20">
             <Activity className="w-6 h-6 text-primary" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-white">PulseTrace</span>
+          <span className="text-2xl font-bold tracking-tight text-white">RequestLens</span>
         </Link>
         <div className="w-full glass p-8 rounded-2xl shadow-2xl shadow-black/50">
           {children}

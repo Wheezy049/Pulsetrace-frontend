@@ -38,7 +38,7 @@ export default function LandingPage() {
       <header className="container mx-auto px-12 py-6 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
           <Activity className="w-8 h-8 text-primary" />
-          <span className="text-xl font-bold tracking-tight text-white">PulseTrace</span>
+          <span className="text-xl font-bold tracking-tight text-white">RequestLens</span>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-sm p-3 font-medium text-muted-foreground hover:text-white transition-colors">

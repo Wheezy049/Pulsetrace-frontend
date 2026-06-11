@@ -47,7 +47,7 @@ export default function DashboardLayout({
         <div className="p-6 flex-1">
           <Link href="/dashboard" className="flex items-center gap-2 mb-8">
             <Activity className="w-6 h-6 text-primary" />
-            <span className="text-xl font-bold tracking-tight text-white">PulseTrace</span>
+            <span className="text-xl font-bold tracking-tight text-white">RequestLens</span>
           </Link>
           <nav className="space-y-2">
             {navigation.map((item) => {
