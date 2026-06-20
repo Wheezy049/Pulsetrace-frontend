@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useProjectDetail } from "@/hooks/useProjects";
 import { useProjectStats, useSimulateLog } from "@/hooks/useAnalytics";
 import { ArrowLeft, Activity, AlertTriangle, CheckCircle2, Copy, Check, Loader2, Play } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSocket } from "@/hooks/useSocket";
 import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Bar, Legend, ComposedChart, PieChart, Pie, Cell } from "recharts";
 import type { TooltipProps } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -104,11 +106,18 @@ async def log_requests(request: Request, call_next):
     }
   };
 
+  const queryClient = useQueryClient();
+
   // Fetch project details using custom hooks
   const { project, isLoadingProject } = useProjectDetail(projectId);
 
   // Fetch project stats
   const { data: stats, isLoading: isStatsLoading } = useProjectStats(projectId);
+
+  // Subscribe to real-time logs via WebSockets
+  useSocket(projectId, () => {
+    queryClient.invalidateQueries({ queryKey: ["projectStats", projectId] });
+  });
 
   // Simulator mutation hook
   const { simulateAsync, isSimulating } = useSimulateLog(projectId);

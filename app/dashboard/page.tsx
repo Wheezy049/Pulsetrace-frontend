@@ -87,7 +87,7 @@ export default function DashboardPage() {
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-16 bg-zinc-900/20 border border-dashed border-zinc-800 rounded-2xl p-8 max-w-lg mx-auto">
+        <div className="text-center py-16 bg-zinc-900/20 border border-dashed border-zinc-800 rounded-2xl p-8 flex flex-col items-center justify-center h-[520px]">
           <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
             <Activity className="w-6 h-6 text-primary" />
           </div>

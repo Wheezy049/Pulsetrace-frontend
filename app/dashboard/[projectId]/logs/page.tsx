@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useProjectLogs } from "@/hooks/useAnalytics";
 import { ArrowLeft, Search, Loader2, Database } from "lucide-react";
 import { format } from "date-fns";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSocket } from "@/hooks/useSocket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,8 +23,15 @@ export default function LogsPage({ params }: { params: Promise<{ projectId: stri
   const [searchTerm, setSearchTerm] = useState("");
   const limit = 10;
 
+  const queryClient = useQueryClient();
+
   // Fetch paginated logs
   const { data, isLoading } = useProjectLogs(projectId, page, limit);
+
+  // Subscribe to real-time logs via WebSockets
+  useSocket(projectId, () => {
+    queryClient.invalidateQueries({ queryKey: ["projectLogs", projectId] });
+  });
 
   const getStatusColor = (status: number) => {
     if (status >= 200 && status < 300) return "bg-green-500/10 text-green-400 border-green-500/20";
