@@ -6,10 +6,12 @@ import { ArrowLeft, Plus, Trash2, X, Loader2, Server, AlertTriangle } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 export default function EndpointsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = React.use(params);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [routeToDelete, setRouteToDelete] = useState<{ id: string; method: string; path: string } | null>(null);
 
   const {
     endpoints,
@@ -94,11 +96,9 @@ export default function EndpointsPage({ params }: { params: Promise<{ projectId:
                   <h3 className="font-semibold text-white group-hover:text-primary transition-colors">{ep.name}</h3>
                   <button
                     onClick={() => {
-                      if (confirm(`Unregister route ${ep.method} ${ep.path}? This will also delete all associated logs.`)) {
-                        deleteEndpoint(ep.id);
-                      }
+                      setRouteToDelete({ id: ep.id, method: ep.method, path: ep.path });
                     }}
-                    className="text-zinc-500 hover:text-red-400 transition-colors p-1 rounded hover:bg-zinc-800/40"
+                    className="text-zinc-500 hover:text-red-400 transition-colors p-1 rounded hover:bg-zinc-800/40 cursor-pointer"
                     title="Unregister Endpoint"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -197,6 +197,20 @@ export default function EndpointsPage({ params }: { params: Promise<{ projectId:
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={routeToDelete !== null}
+        onClose={() => setRouteToDelete(null)}
+        onConfirm={() => {
+          if (routeToDelete) {
+            deleteEndpoint(routeToDelete.id);
+          }
+        }}
+        title="Unregister Endpoint"
+        message={`Are you sure you want to unregister the route "${routeToDelete?.method} ${routeToDelete?.path}"? This will permanently delete all associated request telemetry logs.`}
+        confirmText="Unregister"
+        variant="destructive"
+      />
     </div>
   );
 }

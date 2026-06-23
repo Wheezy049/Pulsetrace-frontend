@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Activity, LayoutDashboard, Settings, LogOut, Bell, Search } from "lucide-react";
@@ -14,6 +14,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { logout, currentUser } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -98,8 +103,8 @@ export default function DashboardLayout({
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-medium text-primary" title={currentUser?.email || ""}>
-              {getInitials()}
+            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-medium text-primary" title={mounted && currentUser?.email ? currentUser.email : ""}>
+              {mounted ? getInitials() : "U"}
             </div>
           </div>
         </header>

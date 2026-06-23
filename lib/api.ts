@@ -99,6 +99,19 @@ export interface EndpointStat {
   avgResponseTime: number;
 }
 
+export interface AlertRule {
+  id: string;
+  name: string;
+  thresholdPercentage: number;
+  windowMinutes: number;
+  cooldownMinutes: number;
+  minRequests: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  projectId: string;
+}
+
 export interface ProjectStats {
   totalRequests: number;
   failedRequests: number;
@@ -236,7 +249,53 @@ export const api = {
     );
   },
 
-  // Log Simulation (Ingestion using API Key)
+  // Alerts
+  getAlertRules: async (projectId: string) => {
+    const res = await request<{ message: string; alertRules: AlertRule[] }>(
+      `/projects/${projectId}/alerts`
+    );
+    return res.alertRules;
+  },
+
+  createAlertRule: async (
+    projectId: string,
+    data: {
+      name: string;
+      thresholdPercentage: number;
+      windowMinutes: number;
+      cooldownMinutes: number;
+      minRequests: number;
+    }
+  ) => {
+    return request<{ message: string; alertRule: AlertRule }>(
+      `/projects/${projectId}/alerts`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+  },
+
+  toggleAlertRule: async (projectId: string, ruleId: string, active?: boolean) => {
+    return request<{ message: string; alertRule: AlertRule }>(
+      `/projects/${projectId}/alerts/${ruleId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ active }),
+      }
+    );
+  },
+
+  deleteAlertRule: async (projectId: string, ruleId: string) => {
+    return request<{ message: string }>(
+      `/projects/${projectId}/alerts/${ruleId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  },
+
+  // Log Simulation
   simulateLog: async (
     apiKey: string,
     endpointId: string,

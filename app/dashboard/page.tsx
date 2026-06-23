@@ -7,12 +7,14 @@ import { Plus, Activity, Trash2, X, Loader2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newApiKey, setNewApiKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Authentication check
   useEffect(() => {
@@ -119,9 +121,7 @@ export default function DashboardPage() {
                       size="icon"
                       onClick={(e) => {
                         e.preventDefault();
-                        if (confirm(`Are you sure you want to delete ${project.name}?`)) {
-                          deleteProject(project.id);
-                        }
+                        setProjectToDelete({ id: project.id, name: project.name });
                       }}
                       className="h-8 w-8 text-zinc-500 hover:text-red-400 hover:bg-zinc-850 rounded-lg"
                     >
@@ -237,6 +237,20 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={projectToDelete !== null}
+        onClose={() => setProjectToDelete(null)}
+        onConfirm={() => {
+          if (projectToDelete) {
+            deleteProject(projectToDelete.id);
+          }
+        }}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${projectToDelete?.name}"? This will permanently remove all registered endpoints, api keys, alert rules, and request logs. This action cannot be undone.`}
+        confirmText="Delete Project"
+        variant="destructive"
+      />
     </>
   );
 }

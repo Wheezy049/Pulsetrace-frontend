@@ -3,14 +3,19 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProjectDetail } from "@/hooks/useProjects";
-import { ArrowLeft, Trash2, Copy, Check, Loader2, Key, ShieldAlert } from "lucide-react";
+import { useAlertRules } from "@/hooks/useAlerts";
+import { ArrowLeft, Trash2, Copy, Check, Loader2, Key, ShieldAlert, Bell, Plus, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 export default function SettingsPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = React.use(params);
   const router = useRouter();
   const [copiedKey, setCopiedKey] = useState(false);
   const [revealKey, setRevealKey] = useState(false);
+  const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch project details & deletion mutation
   const {
@@ -20,20 +25,54 @@ export default function SettingsPage({ params }: { params: Promise<{ projectId: 
     isDeletingProject,
   } = useProjectDetail(projectId);
 
+  // Alert rules state
+  const { rules, createRule, toggleRule, deleteRule, isCreatingRule } = useAlertRules(projectId);
+  const [isAddRuleOpen, setIsAddRuleOpen] = useState(false);
+
+  // Form State
+  const [ruleName, setRuleName] = useState("");
+  const [threshold, setThreshold] = useState(5.0);
+  const [windowMin, setWindowMin] = useState(5);
+  const [cooldownMin, setCooldownMin] = useState(30);
+  const [minReqs, setMinReqs] = useState(10);
+
+  const handleCreateRule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ruleName || threshold === undefined) return;
+    createRule({
+      name: ruleName,
+      thresholdPercentage: Number(threshold),
+      windowMinutes: Number(windowMin),
+      cooldownMinutes: Number(cooldownMin),
+      minRequests: Number(minReqs),
+    }, {
+      onSuccess: () => {
+        setRuleName("");
+        setThreshold(5.0);
+        setWindowMin(5);
+        setCooldownMin(30);
+        setMinReqs(10);
+        setIsAddRuleOpen(false);
+      }
+    });
+  };
+
   const handleCopyKey = (key: string) => {
     navigator.clipboard.writeText(key);
     setCopiedKey(true);
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
-  const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete this project? This will permanently remove all registered endpoints and API logs. This action cannot be undone.")) {
-      try {
-        await deleteProjectAsync();
-        router.push("/dashboard");
-      } catch (err) {
-        console.error(err);
-      }
+  const handleDelete = () => {
+    setIsDeleteProjectOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteProjectAsync();
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -137,6 +176,164 @@ export default function SettingsPage({ params }: { params: Promise<{ projectId: 
             </div>
           </div>
         </div>
+        {/* Alerting Rules Card */}
+        <div className="bg-zinc-900/30 p-6 rounded-xl border border-zinc-800/60 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-zinc-400" />
+              <h2 className="text-sm font-semibold text-white">5xx Error Alerting Rules</h2>
+            </div>
+            <Button
+              onClick={() => setIsAddRuleOpen(!isAddRuleOpen)}
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 border-zinc-800 hover:bg-zinc-800 text-zinc-300 hover:text-white"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Rule
+            </Button>
+          </div>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            Configure threshold rules to receive email alerts when your endpoints experience high 5xx error percentages. A cooldown is applied after each alert to prevent inbox spam.
+          </p>
+          {isAddRuleOpen && (
+            <form onSubmit={handleCreateRule} className="bg-zinc-950/60 p-4 rounded-lg border border-zinc-800/80 space-y-4 animate-in fade-in duration-200">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">New Alert Rule</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase">Rule Name</label>
+                  <Input
+                    placeholder="e.g. Production 5xx spike"
+                    value={ruleName}
+                    onChange={(e) => setRuleName(e.target.value)}
+                    required
+                    className="h-8 bg-zinc-900 border-zinc-800 text-xs text-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase">5xx Error Threshold (%)</label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    placeholder="5.0"
+                    value={threshold}
+                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    required
+                    className="h-8 bg-zinc-900 border-zinc-800 text-xs text-white"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase">Time Window (Minutes)</label>
+                  <select
+                    value={windowMin}
+                    onChange={(e) => setWindowMin(Number(e.target.value))}
+                    className="w-full h-8 rounded-md border border-zinc-800 bg-zinc-900 px-3 text-xs text-white"
+                  >
+                    <option value={1}>1 Minute</option>
+                    <option value={5}>5 Minutes</option>
+                    <option value={15}>15 Minutes</option>
+                    <option value={30}>30 Minutes</option>
+                    <option value={60}>60 Minutes (1 hour)</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase">Cooldown Duration</label>
+                  <select
+                    value={cooldownMin}
+                    onChange={(e) => setCooldownMin(Number(e.target.value))}
+                    className="w-full h-8 rounded-md border border-zinc-800 bg-zinc-900 px-3 text-xs text-white"
+                  >
+                    <option value={10}>10 Minutes</option>
+                    <option value={30}>30 Minutes</option>
+                    <option value={60}>60 Minutes (1 hour)</option>
+                    <option value={720}>12 Hours</option>
+                    <option value={1440}>24 Hours</option>
+                  </select>
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-[10px] font-medium text-zinc-400 uppercase block mb-0.5">Minimum Requests (in window)</label>
+                  <span className="text-[10px] text-zinc-500 block mb-1">Alert will only fire if at least this many requests occur in the time window (prevents alerts on single test failures).</span>
+                  <Input
+                    type="number"
+                    min="1"
+                    placeholder="10"
+                    value={minReqs}
+                    onChange={(e) => setMinReqs(Number(e.target.value))}
+                    className="h-8 bg-zinc-905 border-zinc-800 text-xs text-white max-w-[200px]"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <Button
+                  type="button"
+                  onClick={() => setIsAddRuleOpen(false)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-8 text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isCreatingRule}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/95 text-white text-xs h-8 px-4"
+                >
+                  {isCreatingRule ? "Saving..." : "Save Rule"}
+                </Button>
+              </div>
+            </form>
+          )}
+          <div className="space-y-3 pt-2">
+            <span className="text-[11px] font-medium text-zinc-500 block">ACTIVE ALERTS ({rules.length})</span>
+            {rules.length === 0 ? (
+              <div className="text-xs text-zinc-500 italic p-3 bg-zinc-950/40 rounded-lg border border-zinc-850">
+                No alert rules defined. Click &#34;Add Rule&#34; to configure one.
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800/60 bg-zinc-950/30 rounded-lg border border-zinc-800/80 overflow-hidden">
+                {rules.map((rule) => (
+                  <div key={rule.id} className="p-4 flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-semibold text-white">{rule.name}</h4>
+                        {!rule.active && (
+                          <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 text-[9px] font-medium">Inactive</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-zinc-400 leading-relaxed">
+                        Triggers if error rate is <strong className="text-red-400 font-mono">&gt;= {rule.thresholdPercentage}%</strong> over <strong className="text-white font-mono">{rule.windowMinutes}m</strong> window (Min reqs: <strong className="text-white font-mono">{rule.minRequests}</strong>) • Cooldown: <strong className="text-white font-mono">{rule.cooldownMinutes}m</strong>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleRule({ ruleId: rule.id })}
+                        className="text-zinc-400 hover:text-white transition-colors"
+                        title={rule.active ? "Deactivate Rule" : "Activate Rule"}
+                      >
+                        {rule.active ? (
+                          <ToggleRight className="w-6 h-6 text-green-500" />
+                        ) : (
+                          <ToggleLeft className="w-6 h-6 text-zinc-600" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRuleToDelete({ id: rule.id, name: rule.name });
+                        }}
+                        className="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                        title="Delete Rule"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         {/* Danger Zone Card */}
         <div className="bg-red-500/5 p-6 rounded-xl border border-red-900/30 space-y-4">
           <div className="flex items-center gap-2 text-red-400">
@@ -165,6 +362,30 @@ export default function SettingsPage({ params }: { params: Promise<{ projectId: 
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteProjectOpen}
+        onClose={() => setIsDeleteProjectOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Project"
+        message={`Are you sure you want to delete this project? This will permanently remove all registered endpoints and API logs. This action cannot be undone.`}
+        confirmText="Delete Project"
+        variant="destructive"
+      />
+
+      <ConfirmModal
+        isOpen={ruleToDelete !== null}
+        onClose={() => setRuleToDelete(null)}
+        onConfirm={() => {
+          if (ruleToDelete) {
+            deleteRule(ruleToDelete.id);
+          }
+        }}
+        title="Delete Alert Rule"
+        message={`Are you sure you want to delete the alert rule "${ruleToDelete?.name}"?`}
+        confirmText="Delete Rule"
+        variant="destructive"
+      />
     </div>
   );
 }

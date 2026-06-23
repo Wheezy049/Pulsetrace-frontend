@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
+import { ApiLog } from "../lib/api";
 
 const getSocketUrl = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -8,8 +9,14 @@ const getSocketUrl = () => {
 
 const SOCKET_URL = getSocketUrl();
 
-export function useSocket(projectId: string, onNewLog?: (log: any) => void) {
+export function useSocket(projectId: string, onNewLog?: (log: ApiLog) => void) {
   const socketRef = useRef<Socket | null>(null);
+  const onNewLogRef = useRef(onNewLog);
+
+  // Keep callback ref updated without triggering connection effects
+  useEffect(() => {
+    onNewLogRef.current = onNewLog;
+  }, [onNewLog]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -39,8 +46,8 @@ export function useSocket(projectId: string, onNewLog?: (log: any) => void) {
 
     socket.on("new_log", (log) => {
       console.log("[Socket] New telemetry log received in real-time:", log);
-      if (onNewLog) {
-        onNewLog(log);
+      if (onNewLogRef.current) {
+        onNewLogRef.current(log);
       }
     });
 
@@ -58,7 +65,7 @@ export function useSocket(projectId: string, onNewLog?: (log: any) => void) {
         socket.disconnect();
       }
     };
-  }, [projectId, onNewLog]);
+  }, [projectId]); // Excluded onNewLog from dependency array to prevent reconnect loops
 
   return socketRef;
 }
