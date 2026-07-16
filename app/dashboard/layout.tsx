@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, LayoutDashboard, Settings, LogOut, Bell, Search } from "lucide-react";
+import { Activity, LayoutDashboard, LogOut, Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -17,7 +17,8 @@ export default function DashboardLayout({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen md:h-screen bg-background flex flex-col md:flex-row md:overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 glass border-r border-white/10 flex-shrink-0 flex flex-col md:h-full overflow-y-auto">
+      <aside className="w-full md:w-64 glass border-r border-white/10 shrink-0 flex flex-col md:h-full overflow-y-auto">
         <div className="p-6 flex-1">
           <Link href="/dashboard" className="flex items-center gap-2 mb-8">
             <Activity className="w-6 h-6 text-primary" />

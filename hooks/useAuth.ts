@@ -12,6 +12,11 @@ export function useAuth() {
       api.register(email, password),
   });
 
+  const googleLoginMutation = useMutation({
+    mutationFn: ({ idToken }: { idToken: string }) =>
+      api.loginWithGoogle(idToken),
+  });
+
   const logout = () => {
     api.logout();
   };
@@ -26,6 +31,11 @@ export function useAuth() {
     registerAsync: registerMutation.mutateAsync,
     isRegistering: registerMutation.isPending,
     registerError: registerMutation.error,
+
+    googleLogin: googleLoginMutation.mutate,
+    googleLoginAsync: googleLoginMutation.mutateAsync,
+    isGoogleLoggingIn: googleLoginMutation.isPending,
+    googleLoginError: googleLoginMutation.error,
 
     logout,
     currentUser: api.getCurrentUser(),

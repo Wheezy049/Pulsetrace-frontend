@@ -50,6 +50,9 @@ async function request<T>(
 export interface User {
   id: string;
   email: string;
+  name?: string;
+  avatar?: string;
+  provider?: string;
   createdAt: string;
 }
 
@@ -132,6 +135,22 @@ export interface PaginatedLogs {
 
 export const api = {
   // Authentication
+  loginWithGoogle: async (idToken: string) => {
+    const res = await request<{ message: string; token: string; user: User }>(
+      "/auth/google",
+      {
+        method: "POST",
+        body: JSON.stringify({ idToken }),
+      }
+    );
+    // Store in local storage on success
+    if (res.token) {
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+    }
+    return res;
+  },
+
   login: async (email: string, password: string) => {
     const res = await request<{ message: string; token: string; user: User }>(
       "/auth/login",

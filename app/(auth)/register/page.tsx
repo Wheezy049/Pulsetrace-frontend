@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import GoogleButton from "@/components/GoogleButton";
 
 const registerSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -27,7 +28,7 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { registerAsync, isRegistering } = useAuth();
+    const { registerAsync, isRegistering, googleLoginAsync, isGoogleLoggingIn } = useAuth();
 
     const {
         register,
@@ -47,7 +48,17 @@ export default function RegisterPage() {
         }
     };
 
-    const isLoading = isRegistering;
+    const handleGoogleSuccess = async (idToken: string) => {
+        setErrorMsg(null);
+        try {
+            await googleLoginAsync({ idToken });
+            router.push("/dashboard");
+        } catch (err) {
+            setErrorMsg(err instanceof Error ? err.message : "Google authentication failed");
+        }
+    };
+
+    const isLoading = isRegistering || isGoogleLoggingIn;
 
     return (
         <>
@@ -130,6 +141,19 @@ export default function RegisterPage() {
                     )}
                 </Button>
             </form>
+            <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-zinc-800" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-zinc-950 px-2 text-zinc-500 font-medium">OR</span>
+                </div>
+            </div>
+            <GoogleButton 
+                onSuccess={handleGoogleSuccess}
+                onError={(err) => setErrorMsg(err)}
+                isLoading={isGoogleLoggingIn}
+            />
             <div className="mt-6 text-center text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline font-medium">
