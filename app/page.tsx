@@ -74,9 +74,6 @@ export default function LandingPage() {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base glass border-white/10 hover:bg-white/5">
-              <Link href="#">View Docs</Link>
-            </Button>
           </motion.div>
         </motion.div>
         {/* Floating Dashboard Image Mockup */}
@@ -186,9 +183,6 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
                 <Button asChild size="lg" className="h-12 px-8 text-base bg-primary hover:bg-primary/90">
                   <Link href="/register">Start for free</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base glass hover:bg-white/5 text-white">
-                  <Link href="#">Read documentation</Link>
                 </Button>
               </div>
             </motion.div>
